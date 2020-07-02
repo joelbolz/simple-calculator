@@ -67,15 +67,12 @@ def button_bracket_open():
         wrong_syntax()
     elif b_num == 1:
         if last_op == "add" or last_op == "none":
-            val_bracket.append("+")
             e.delete(0, END)
             last_op = "bracket_add"
         if last_op == "sub":
-            val_bracket.append("-")
             e.delete(0, END)
             last_op = "bracket_sub"
         if last_op == "multi" or last_op == "multi+" or last_op == "multi-":
-            val_bracket.append("*")
             e.delete(0, END)
             last_op = "bracket_multi"
     elif b_num != 1:
@@ -93,21 +90,18 @@ def button_bracket_close():
     if b_num == 0:
         if last_op == "bracket_add":
             val_bracket.append(str(e.get()))
-            val_bracket.insert(0, "0")
             val_add.append(eval("".join(val_bracket)))
             val_bracket.clear()
             e.delete(0, END)
             last_op = "bracket_end"
         elif last_op == "bracket_sub":
             val_bracket.append(str(e.get()))
-            val_bracket.insert(0, "0")
             val_sub.append(eval("".join(val_bracket)))
             val_bracket.clear()
             e.delete(0, END)
             last_op = "bracket_end"
         elif last_op == "bracket_multi":
             val_bracket.append(str(e.get()))
-            val_bracket.insert(0, "1")
             val_multi.append(eval("".join(val_bracket)))
             val_bracket.clear()
             e.delete(0, END)
@@ -133,7 +127,7 @@ def button_click(nb):
         last_op = "click-"
     elif last_op == "multi-" or last_op == "click*-":
         last_op = "click*-"
-    elif last_op == "multi+" or last_op == "click*+":
+    elif last_op == "multi+" or last_op == "click*+" or last_op == "multi":
         last_op = "click*+"
     elif last_op == "bracket_add":
         last_op = "bracket_add"
@@ -151,6 +145,7 @@ def button_clear():
     e.delete(0, END)
     val_add.clear()
     val_sub.clear()
+    val_multi.clear()
     val_bracket.clear()
     maths.delete(0,END)
     last_op = "clear"
@@ -175,15 +170,15 @@ def button_add():
         val_add.append(int(e.get()))
         e.delete(0, END)
         last_op = "add"
-    if last_op == "click+":
+    elif last_op == "click+":
         val_add.append(int(e.get()))
         e.delete(0, END)
         last_op = "add"
-    if last_op == "click-":
+    elif last_op == "click-":
         val_sub.append(int(e.get()))
         e.delete(0, END)
         last_op = "add"
-    if last_op == "click*+":
+    elif last_op == "click*+":
         val_multi.append(int(e.get()))
         ans_multi_plus = multi_list(val_multi)
         val_multi.clear()
@@ -191,7 +186,7 @@ def button_add():
         ans_multi_plus = 1
         e.delete(0, END)
         last_op = "add"
-    if last_op == "click*-":
+    elif last_op == "click*-":
         val_multi.append(int(e.get()))
         ans_multi_minus = multi_list(val_multi)
         val_multi.clear()
@@ -211,7 +206,9 @@ def button_add():
         val_bracket.append(str(e.get()))
         val_bracket.append("+")
         last_op = "bracket_multi"
-    if last_op == "bracket_end":
+    elif last_op == "bracket_end":
+        last_op = "add"
+    else:
         last_op = "add"
     e.delete(0, END)
 
@@ -231,7 +228,7 @@ def button_multi():
         last_op = "multi+"
         e.delete(0, END)
     elif last_op == "click-":
-        val_multi.append(int(e.get()))
+        val_multi.append(int(e.get())*-1)
         last_op = "multi-"
         e.delete(0, END)
     elif e.get() != "" and last_op == "multi+" or last_op == "click*+":
@@ -254,9 +251,11 @@ def button_multi():
         val_bracket.append(str(e.get()))
         val_bracket.append("*")
         last_op = "bracket_multi"
+    elif last_op == "bracket_end":
+        last_op = "multi"
     else:
         last_op = "multi"
-        e.delete(0, END)
+    e.delete(0, END)
 
 
 # - clicked
@@ -271,26 +270,30 @@ def button_subtract():
     if e.get() != "" and last_op == "click" or last_op == "equal" and len(val_add) == 0:
         val_add.append(int(e.get()))
         e.delete(0, END)
-    if last_op == "click-":
+        last_op = "sub"
+    elif last_op == "click-":
         val_sub.append(int(e.get()))
         e.delete(0, END)
-    if last_op == "click+":
+    elif last_op == "click+":
         val_add.append(int(e.get()))
         e.delete(0, END)
-    if last_op == "click*+":
+        last_op = "sub"
+    elif last_op == "click*+":
         val_multi.append(int(e.get()))
         ans_multi_plus = multi_list(val_multi)
         val_multi.clear()
         val_add.append(ans_multi_plus)
         ans_multi_plus = 1
         e.delete(0, END)
-    if last_op == "click*-":
+        last_op = "sub"
+    elif last_op == "click*-":
         val_multi.append(int(e.get()))
         ans_multi_minus = multi_list(val_multi)
         val_multi.clear()
         val_sub.append(ans_multi_minus)
         ans_multi_minus = 1
         e.delete(0, END)
+        last_op = "sub"
     elif last_op == "bracket_add":
         val_bracket.append(str(e.get()))
         val_bracket.append("-")
@@ -305,8 +308,11 @@ def button_subtract():
         last_op = "bracket_multi"
     elif last_op == "bracket_end":
         last_op = "sub"
+    elif last_op == "bracket_end":
+        last_op = "sub"
+    else:
+        last_op = "sub"
     e.delete(0, END)
-    last_op = "sub"
 
 
 # = clicked, calculate
@@ -416,6 +422,8 @@ def add_new_button(button, row, col):
 add_new_button(button_7, 1, 0)
 root.mainloop()
 print(b_num)
-print(val_bracket)
-print(val_multi)
+print("bracket: ", val_bracket)
+print("multi: ", val_multi)
+print("add: ", val_add)
+print("sub: ", val_sub)
 print(last_op)
