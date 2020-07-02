@@ -376,8 +376,7 @@ button_bracket_cl = Button(root, text=")", padx=40, bg=bg_c, fg=fg_c, highlightb
 widgets = [button_1, button_2, button_3, button_4, button_5, button_6, button_7, button_8, button_9, button_0,
            button_plus, button_minus, button_multi, button_equal, button_clear, button_mode, root, e]
 
-e.grid(row=0, column =0, columnspan=3)
-maths.grid(row=1, column =4, columnspan=3)
+maths.grid(row=0, column=0, columnspan=3)
 button_clear.grid(row=7, column=0, columnspan=3)
 button_mode.grid(row=0, column=4, columnspan=3)
 
