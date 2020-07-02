@@ -1,4 +1,5 @@
 from tkinter import *
+import time
 
 # initially: dark-mode
 bg_c = "#383838"
@@ -11,14 +12,19 @@ root = Tk()     # basic widget (window)
 root.title("Simple Calculator")
 root.configure(bg=bg_c_r)
 e = Entry(root, width=35, borderwidth=5, bg=bg_c, fg=fg_c, highlightbackground=h_b_c)
+maths = Entry(root, width=35, borderwidth=5, bg=bg_c, fg=fg_c, highlightbackground=h_b_c)
 
 # globals
 val_add = []
 val_sub = []
 val_multi = []
-last_op = ""
+val_bracket = []
+
+b_num = 0
+last_op = "none"
 ans_multi_plus = 1
 ans_multi_minus = 1
+ans_bracket = int
 
 
 # multiply entries in given list
@@ -49,12 +55,78 @@ def button_mode():
                 widget.configure(bg=fg_c_r)
 
 
+def button_bracket_open():
+    global last_op
+    global b_num
+    b_num += 1
+    current_m = maths.get()
+    maths.delete(0, END)
+    maths.insert(0, str(current_m) + "(")
+    if last_op == "click" or last_op == "click+" or last_op == "click-" or last_op == "click*-" or last_op == "click*+" or last_op == "bracket_click":
+        print("syntax")
+        wrong_syntax()
+    elif b_num == 1:
+        if last_op == "add" or last_op == "none":
+            val_bracket.append("+")
+            e.delete(0, END)
+            last_op = "bracket_add"
+        if last_op == "sub":
+            val_bracket.append("-")
+            e.delete(0, END)
+            last_op = "bracket_sub"
+        if last_op == "multi" or last_op == "multi+" or last_op == "multi-":
+            val_bracket.append("*")
+            e.delete(0, END)
+            last_op = "bracket_multi"
+    elif b_num != 1:
+        val_bracket.append("(")
+        e.delete(0, END)
+
+
+def button_bracket_close():
+    global last_op
+    global b_num
+    b_num -= 1
+    current_m = maths.get()
+    maths.delete(0, END)
+    maths.insert(0, str(current_m) + ")")
+    if b_num == 0:
+        if last_op == "bracket_add":
+            val_bracket.append(str(e.get()))
+            val_bracket.insert(0, "0")
+            val_add.append(eval("".join(val_bracket)))
+            val_bracket.clear()
+            e.delete(0, END)
+            last_op = "bracket_end"
+        elif last_op == "bracket_sub":
+            val_bracket.append(str(e.get()))
+            val_bracket.insert(0, "0")
+            val_sub.append(eval("".join(val_bracket)))
+            val_bracket.clear()
+            e.delete(0, END)
+            last_op = "bracket_end"
+        elif last_op == "bracket_multi":
+            val_bracket.append(str(e.get()))
+            val_bracket.insert(0, "1")
+            val_multi.append(eval("".join(val_bracket)))
+            val_bracket.clear()
+            e.delete(0, END)
+            last_op = "bracket_end"
+    else:
+        val_bracket.append(str(e.get()))
+        val_bracket.append(")")
+        e.delete(0, END)
+
+
 # number clicked
 def button_click(nb):
     global last_op
     current = e.get()
+    current_m = maths.get()
     e.delete(0, END)
     e.insert(0, str(current) + str(nb))
+    maths.delete(0, END)
+    maths.insert(0, str(current_m) + str(nb))
     if last_op == "add" or last_op == "click+":
         last_op = "click+"
     elif last_op == "sub" or last_op == "click-":
@@ -63,6 +135,12 @@ def button_click(nb):
         last_op = "click*-"
     elif last_op == "multi+" or last_op == "click*+":
         last_op = "click*+"
+    elif last_op == "bracket_add":
+        last_op = "bracket_add"
+    elif last_op == "bracket_sub":
+        last_op = "bracket_sub"
+    elif last_op == "bracket_multi":
+        last_op = "bracket_multi"
     else:
         last_op = "click"
 
@@ -73,7 +151,15 @@ def button_clear():
     e.delete(0, END)
     val_add.clear()
     val_sub.clear()
+    val_bracket.clear()
+    maths.delete(0,END)
     last_op = "clear"
+
+
+def wrong_syntax():
+    button_clear()
+    e.insert(0, "WRONG SYNTAX")
+    time.sleep(1)
 
 
 # + clicked
@@ -82,15 +168,21 @@ def button_add():
     global val_multi
     global ans_multi_plus
     global ans_multi_minus
+    current_m = maths.get()
+    maths.delete(0, END)
+    maths.insert(0, str(current_m) + "+")
     if e.get() != "" and last_op == "click" or last_op == "equal" and len(val_add) == 0:
         val_add.append(int(e.get()))
         e.delete(0, END)
+        last_op = "add"
     if last_op == "click+":
         val_add.append(int(e.get()))
         e.delete(0, END)
+        last_op = "add"
     if last_op == "click-":
         val_sub.append(int(e.get()))
         e.delete(0, END)
+        last_op = "add"
     if last_op == "click*+":
         val_multi.append(int(e.get()))
         ans_multi_plus = multi_list(val_multi)
@@ -98,6 +190,7 @@ def button_add():
         val_add.append(ans_multi_plus)
         ans_multi_plus = 1
         e.delete(0, END)
+        last_op = "add"
     if last_op == "click*-":
         val_multi.append(int(e.get()))
         ans_multi_minus = multi_list(val_multi)
@@ -105,13 +198,30 @@ def button_add():
         val_sub.append(ans_multi_minus)
         ans_multi_minus = 1
         e.delete(0, END)
+        last_op = "add"
+    elif last_op == "bracket_add":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("+")
+        last_op = "bracket_add"
+    elif last_op == "bracket_sub":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("+")
+        last_op = "bracket_sub"
+    elif last_op == "bracket_multi":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("+")
+        last_op = "bracket_multi"
+    if last_op == "bracket_end":
+        last_op = "add"
     e.delete(0, END)
-    last_op = "add"
 
 
 # x clicked
 def button_multi():
     global last_op
+    current_m = maths.get()
+    maths.delete(0, END)
+    maths.insert(0, str(current_m) + "x")
     if e.get() != "" and last_op == "click" or last_op == "equal" and len(val_multi) == 0:
         val_multi.append(int(e.get()))
         last_op = "multi+"
@@ -119,7 +229,7 @@ def button_multi():
     elif last_op == "click+":
         val_multi.append(int(e.get()))
         last_op = "multi+"
-        e.delete((0, END))
+        e.delete(0, END)
     elif last_op == "click-":
         val_multi.append(int(e.get()))
         last_op = "multi-"
@@ -132,6 +242,18 @@ def button_multi():
         val_multi.append(int(e.get()))
         last_op = "multi-"
         e.delete(0, END)
+    elif last_op == "bracket_add":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("*")
+        last_op = "bracket_add"
+    elif last_op == "bracket_sub":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("*")
+        last_op = "bracket_sub"
+    elif last_op == "bracket_multi":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("*")
+        last_op = "bracket_multi"
     else:
         last_op = "multi"
         e.delete(0, END)
@@ -143,6 +265,9 @@ def button_subtract():
     global val_multi
     global ans_multi_plus
     global ans_multi_minus
+    current_m = maths.get()
+    maths.delete(0, END)
+    maths.insert(0, str(current_m) + "-")
     if e.get() != "" and last_op == "click" or last_op == "equal" and len(val_add) == 0:
         val_add.append(int(e.get()))
         e.delete(0, END)
@@ -166,6 +291,20 @@ def button_subtract():
         val_sub.append(ans_multi_minus)
         ans_multi_minus = 1
         e.delete(0, END)
+    elif last_op == "bracket_add":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("-")
+        last_op = "bracket_add"
+    elif last_op == "bracket_sub":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("-")
+        last_op = "bracket_sub"
+    elif last_op == "bracket_multi":
+        val_bracket.append(str(e.get()))
+        val_bracket.append("-")
+        last_op = "bracket_multi"
+    elif last_op == "bracket_end":
+        last_op = "sub"
     e.delete(0, END)
     last_op = "sub"
 
@@ -178,30 +317,41 @@ def button_equal():
     global val_multi
     global val_add
     global val_sub
-    if last_op == "click+":
-        val_add.append(int(e.get()))
-    if last_op == "click-":
-        val_sub.append(int(e.get()))
-    if last_op == "click*+":
-        val_multi.append(int(e.get()))
-        ans_multi_plus = multi_list(val_multi)
-        val_add.append(ans_multi_plus)
-        ans_multi_plus = 1
-        val_multi.clear()
-    if last_op == "click*-":
-        val_multi.append(int(e.get()))
-        ans_multi_minus = multi_list(val_multi)
-        val_sub.append(ans_multi_minus)
-        ans_multi_minus = 1
-        val_multi.clear()
-    ans_add = sum(val_add)
-    ans_sub = sum(val_sub)
-    ans = ans_add - ans_sub
-    e.delete(0, END)
-    e.insert(0, ans)
-    val_add.clear()
-    val_sub.clear()
-    last_op = "equal"
+    global b_num
+    if b_num == 0:
+        if last_op == "click+":
+            val_add.append(int(e.get()))
+        if last_op == "click-":
+            val_sub.append(int(e.get()))
+        if last_op == "click*+":
+            val_multi.append(int(e.get()))
+            ans_multi_plus = multi_list(val_multi)
+            val_add.append(ans_multi_plus)
+            ans_multi_plus = 1
+            val_multi.clear()
+        if last_op == "click*-":
+            val_multi.append(int(e.get()))
+            ans_multi_minus = multi_list(val_multi)
+            val_sub.append(ans_multi_minus)
+            ans_multi_minus = 1
+            val_multi.clear()
+        if last_op == "bracket_end":
+            ans_multi_plus = multi_list(val_multi)
+            val_add.append(ans_multi_plus)
+            ans_multi_plus = 1
+            val_multi.clear()
+        ans_add = sum(val_add)
+        ans_sub = sum(val_sub)
+        ans = ans_add - ans_sub
+        e.delete(0, END)
+        maths.delete(0, END)
+        maths.insert(0, ans)
+        e.insert(0, ans)
+        val_add.clear()
+        val_sub.clear()
+        last_op = "equal"
+    else:
+        wrong_syntax()
 
 
 # setup of buttons
@@ -221,19 +371,23 @@ button_multi = Button(root, text="x", padx=39, bg=bg_c, fg=fg_c, highlightbackgr
 button_equal = Button(root, text="=", padx=38, bg=bg_c, fg=fg_c, highlightbackground=h_b_c, pady=20, command=button_equal)
 button_clear = Button(root, text="clear", padx=117, bg=bg_c, fg=fg_c, highlightbackground=h_b_c, pady=20, command=button_clear)
 button_mode = Button(root, text="toggle dark-mode", padx=39, bg=bg_c, fg=fg_c, highlightbackground=h_b_c, pady=20, command=button_mode)
-button_test = Button(root, text="test", padx=40, bg=bg_c, fg=fg_c, highlightbackground=h_b_c, pady=20, command=lambda: button_click(8))
+button_bracket_op = Button(root, text="(", padx=40, bg=bg_c, fg=fg_c, highlightbackground=h_b_c, pady=20, command=button_bracket_open)
+button_bracket_cl = Button(root, text=")", padx=40, bg=bg_c, fg=fg_c, highlightbackground=h_b_c, pady=20, command=button_bracket_close)
 widgets = [button_1, button_2, button_3, button_4, button_5, button_6, button_7, button_8, button_9, button_0,
            button_plus, button_minus, button_multi, button_equal, button_clear, button_mode, root, e]
 
 e.grid(row=0, column =0, columnspan=3)
-button_clear.grid(row=6, column =0, columnspan=3)
-button_mode.grid(row=0, column =4, columnspan=3)
+maths.grid(row=1, column =4, columnspan=3)
+button_clear.grid(row=7, column=0, columnspan=3)
+button_mode.grid(row=0, column=4, columnspan=3)
 
 buttons = [
            [button_8, button_9],
            [button_4, button_5, button_6],
            [button_1, button_2, button_3],
-           [button_plus, button_0, button_minus],[button_multi, button_equal]]
+           [button_plus, button_0, button_minus],
+           [button_multi, button_equal],
+           [button_bracket_op, button_bracket_cl]]
 
 
 def add_new_button(button, row, col):
@@ -262,3 +416,7 @@ def add_new_button(button, row, col):
 # initialize root
 add_new_button(button_7, 1, 0)
 root.mainloop()
+print(b_num)
+print(val_bracket)
+print(val_multi)
+print(last_op)
